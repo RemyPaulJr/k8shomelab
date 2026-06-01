@@ -1,42 +1,51 @@
-- name: Loading Master Node IP
-  hosts: localhost
-  tasks:
-    - name: Load Control Node Secrets
-      ansible.builtin.include_vars:
-        file: ~/dev/k8shomelab/ansible/host_vars/control_node.yml
-        name: master
-
 - name: Setting up K3s on Master
   hosts: k3s_master
-  become: true
-  vars:
-    ansible_become_password: "{{ hostvars['localhost']['master']['ansible_password'] }}"
   tasks:
     - name: Installing k3s on Control Node
       ansible.builtin.shell: |
         curl -sfL https://get.k3s.io | sh -
       args:
         executable: /bin/bash
+      become: true
+
+    - name: Create .kube directory
+      ansible.builtin.file:
+        path: /home/baki/.kube
+        state: directory
+        owner: baki
+        group: baki
+        mode: '0755'
+      become: true
+
+    - name: Copy kubeconfig to user home
+      ansible.builtin.copy:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: /home/baki/.kube/config
+        owner: baki
+        group: baki
+        mode: '0600'
+        remote_src: true
+      become: true
+
+    - name: Set KUBECONFIG env var
+      ansible.builtin.lineinfile:
+        path: /home/baki/.bashrc
+        line: 'export KUBECONFIG=/home/baki/.kube/config'
 
     - name: Grabbing Node Token
       ansible.builtin.slurp:
         src: /var/lib/rancher/k3s/server/node-token
       register: node_token_encoded
+      become: true
     
-- name: Loading Worker Node 1 IP
-  hosts: localhost
-  tasks:
-    - name: Load Worker Node 1 Secrets
-      ansible.builtin.include_vars:
-        file: ~/dev/k8shomelab/ansible/host_vars/worker_node1.yml
-        name: worker_node1
+    - name: Store Token Node
+      set_fact:
+        node_token: "{{ node_token_encoded['content'] | b64decode | trim }}"
 
 - name: Joining Worker Node
   hosts: k3s_worker
-  become: true
-  vars:
-    ansible_become_password: "{{ hostvars['localhost']['worker_node1']['ansible_password'] }}"
   tasks:
-    - name: Install k3s Script
+    - name: Install k3s Script on Worker
       ansible.builtin.shell: |
-        curl -sfL https://get.k3s.io | K3S_URL=https://"{{ hostvars['localhost']['master'] }}"":6443 K3S_TOKEN="{{ hostvars['k3s_master']['node_token_encoded'] | b64decode }}"" sh -
+        curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars['control_node']['ansible_host'] }}:6443 K3S_TOKEN={{ hostvars['control_node']['node_token'] }} sh -
+      become: true
