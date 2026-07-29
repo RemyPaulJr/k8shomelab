@@ -3,9 +3,9 @@
 ## Prerequisites
 
 - Two Debian 13 machines with SSH access
-- User with sudo privileges (remy)
+- User with sudo privileges (baki)
 - Ansible installed on your main machine
-- Domain name registered and pointed to Cloudflare
+- Domain registered on Cloudflare (for DNS-01 TLS)
 
 ## Step 1: OS Installation
 
