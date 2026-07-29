@@ -12,7 +12,7 @@
 Both nodes run Debian 13 (Trixie). Install with:
 - Standard system utilities
 - SSH server
-- User `remy` with sudo access
+- User `baki` with sudo access
 
 ## Step 2: Configure SSH
 
@@ -38,7 +38,30 @@ k3s kubectl get nodes
 k3s kubectl get pods -A
 ```
 
-## Step 5: Set up kubeconfig on Main PC
+## Step 5: Install k9s (Terminal UI)
+
+k9s is the recommended way to manage the cluster day-to-day.
+
+```bash
+# Download and install (Linux/WSL2)
+curl -LO https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz
+tar -xzf k9s_Linux_amd64.tar.gz
+sudo mv k9s /usr/local/bin/
+rm k9s_Linux_amd64.tar.gz
+
+# Launch
+k9s
+```
+
+Key k9s commands:
+- `:pods` → pod view, `:deploy` → deployments, `:svc` → services
+- `Ctrl+n` → switch namespace
+- `/` → filter / search
+- `L` → tail logs on selected pod
+- `S` → shell into selected pod
+- `Shift+F` → port-forward on selected pod
+
+## Step 6: Set up kubeconfig on Main PC
 
 Copy the kubeconfig from master:
 
