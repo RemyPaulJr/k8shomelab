@@ -36,6 +36,18 @@ k3s kubectl describe pod -n <ns> <pod>
 - No storage class available (needs Longhorn or local-path-provisioner)
 - Wrong node selector / tolerations
 
+### ArgoCD Install Fails with "CRD annotation too long"
+
+**Symptom:** `kubectl apply -f install.yaml` fails with `metadata.annotations: Too long: may not be more than 262144 bytes`.
+
+**Cause:** The ArgoCD ApplicationSet CRD contains large annotations that exceed the Kubernetes annotation size limit when applied with client-side apply. This is a known issue with newer ArgoCD versions on certain Kubernetes distributions (k3s included).
+
+**Resolution:** Use server-side apply with force-conflicts instead:
+```bash
+kubectl apply --server-side --force-conflicts -n argo-cd \
+  -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
+
 ### Certificate Errors
 
 **Symptom:** Apps show TLS errors after cert-manager setup.

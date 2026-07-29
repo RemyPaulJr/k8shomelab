@@ -252,18 +252,20 @@ k3s kubectl get pods -A
 # k9s (from main PC)
 k9s --context k3shomelab
 
-# ArgoCD — install (one-time bootstrap, run from local machine)
+# ArgoCD — install (one-time bootstrap)
 kubectl create ns argo-cd
-kubectl apply -n argo-cd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl apply --server-side --force-conflicts -n argo-cd \
+  -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 kubectl wait --for=condition=Ready pods --all -n argo-cd
 
 # ArgoCD — get initial admin password
-kubectl -n argo-cd get secret argo-cd-initial-admin-secret \
+kubectl -n argo-cd get secret argocd-initial-admin-secret \
   -o jsonpath="{.data.password}" | base64 -d
 
 # ArgoCD — access UI
-kubectl port-forward svc/argo-cd-argocd-server -n argo-cd 8080:443
+kubectl port-forward svc/argocd-server -n argo-cd 8080:443
+# Then open https://localhost:8080 (admin / <password>)
 
-# ArgoCD — apply root app (after bootstrap)
-kubectl apply -f kubernetes/argocd/bootstrap/root-app.yaml
+# ArgoCD — apply root app (app-of-apps)
+kubectl apply -f https://raw.githubusercontent.com/RemyPaulJr/k8shomelab/main/kubernetes/argocd/bootstrap/root-app.yaml
 ```
