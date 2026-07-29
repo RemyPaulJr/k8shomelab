@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argo-cd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/RemyPaulJr/k8shomelab.git
+    targetRevision: main
+    path: kubernetes/
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

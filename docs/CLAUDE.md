@@ -29,8 +29,9 @@ k8shomelab/
 │   ├── architecture/        # Design decisions, diagrams
 │   ├── guides/              # Setup, operations, troubleshooting
 │   └── runbooks/            # DR, recovery procedures
-├── kubernetes/              # (Planned) ArgoCD app-of-apps manifests
-│   ├── argocd/              # ArgoCD installation + config
+├── kubernetes/              # ArgoCD-managed manifests
+│   ├── argocd/              # ArgoCD config
+│   │   └── bootstrap/       #   root-app.yaml (app-of-apps)
 │   ├── apps/                # Application manifests (deployments, services)
 │   └── infrastructure/      # cert-manager, Longhorn, ingress, etc.
 ├── scripts/                 # (Planned) Helper scripts
@@ -71,7 +72,7 @@ yourdomain.com                  k3s Cluster
 | ------------------ | --------------------------- | ----------- |
 | Container Runtime  | k3s (Rancher)               | ✅ Deployed |
 | Bootstrap          | Ansible + Ansible Vault     | ✅ Done     |
-| GitOps             | ArgoCD                      | 🔜 Planned  |
+| GitOps             | ArgoCD                      | ✅ Deployed |
 | Ingress            | Traefik (k3s default)       | 🔜 Evaluate |
 | TLS                | cert-manager + Let's Encrypt | 🔜 Planned  |
 | External Access    | Cloudflare Tunnel           | 🔜 Planned  |
@@ -94,9 +95,9 @@ yourdomain.com                  k3s Cluster
 - [x] Ansible Vault for SSH secrets
 - [x] GitHub repo as source of truth
 
-### Phase 2 — GitOps + Infrastructure Core (Next)
-- [ ] Install ArgoCD in cluster (app-of-apps pattern)
-- [ ] Define manifest directory structure (`kubernetes/`)
+### Phase 2 — GitOps + Infrastructure Core (In Progress)
+- [x] Install ArgoCD in cluster (app-of-apps pattern)
+- [x] Define manifest directory structure (`kubernetes/`)
 - [ ] Install cert-manager + ClusterIssuer (Let's Encrypt, DNS-01 with Cloudflare)
 - [ ] Set up ingress — evaluate Traefik vs nginx-ingress
 - [ ] Deploy Cloudflare Tunnel (cloudflared as pod)
@@ -143,9 +144,10 @@ Each major decision gets a short record in `docs/architecture/decisions/`.
 | ADR | Decision | Rationale |
 | --- | -------- | --------- |
 | 001 | k3s | Lightweight, single-binary, ARM-friendly, simple multi-node setup |
-| 002 | Cloudflare Tunnel | No open ports, free tier, handles DNS+TLS, works behind CGNAT |
-| 003 | ArgoCD over Flux | Mature, UI, sync status clarity, broader ecosystem |
-| 004 | Longhorn over Rook/Ceph | Simpler to deploy, works well on 2 nodes, UI, built-in backups |
+| 002 | ArgoCD install method | Raw manifest bootstrap + self-management via root app |
+| 003 | Cloudflare Tunnel | No open ports, free tier, handles DNS+TLS, works behind CGNAT |
+| 004 | ArgoCD over Flux | Mature, UI, sync status clarity, broader ecosystem |
+| 005 | Longhorn over Rook/Ceph | Simpler to deploy, works well on 2 nodes, UI, built-in backups |
 | —   | (Add decisions as they're made) | |
 
 ## Workflow
@@ -209,7 +211,7 @@ When working on this project, follow these conventions:
 5. **Where to put things:**
    - K8s manifests → `kubernetes/apps/<app-name>/`
    - Infra manifests → `kubernetes/infrastructure/`
-   - ArgoCD config → `kubernetes/argocd/`
+   - ArgoCD bootstrap → `kubernetes/argocd/bootstrap/root-app.yaml`
    - Design decisions → `docs/architecture/decisions/`
    - Troubleshooting entries → `docs/guides/troubleshooting.md`
    - Runbooks → `docs/runbooks/`
@@ -237,8 +239,8 @@ Keep notes in the relevant file under `docs/architecture/`, `docs/guides/`, or `
 
 ```bash
 # SSH to nodes
-ssh remy@control_node
-ssh remy@worker_node1
+ssh baki@control_node
+ssh baki@worker_node1
 
 # Run Ansible playbook
 ansible-playbook -i ansible/inventory.ini ansible/playbooks/k3s_master.yml --ask-vault-pass
@@ -249,4 +251,21 @@ k3s kubectl get pods -A
 
 # k9s (from main PC)
 k9s --context k3shomelab
+
+# ArgoCD — install (one-time bootstrap)
+kubectl create ns argo-cd
+kubectl apply --server-side --force-conflicts -n argo-cd \
+  -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl wait --for=condition=Ready pods --all -n argo-cd
+
+# ArgoCD — get initial admin password
+kubectl -n argo-cd get secret argocd-initial-admin-secret \
+  -o jsonpath="{.data.password}" | base64 -d
+
+# ArgoCD — access UI
+kubectl port-forward svc/argocd-server -n argo-cd 8080:443
+# Then open https://localhost:8080 (admin / <password>)
+
+# ArgoCD — apply root app (app-of-apps)
+kubectl apply -f https://raw.githubusercontent.com/RemyPaulJr/k8shomelab/main/kubernetes/argocd/bootstrap/root-app.yaml
 ```
