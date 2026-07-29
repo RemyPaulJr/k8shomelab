@@ -4,7 +4,7 @@
 
 ```bash
 # SSH to master
-ssh remy@control_node
+ssh baki@control_node
 
 # Or use k9s from main PC (once kubeconfig is set up)
 k9s --context k3shomelab
@@ -27,17 +27,26 @@ k3s kubectl logs -n <ns> <pod>
 k3s kubectl get events -A --sort-by='.lastTimestamp'
 ```
 
-## ArgoCD (Once Installed)
+## ArgoCD
 
 ```bash
-# Get ArgoCD admin password
-k3s kubectl -n argocd get secret argocd-initial-admin-secret \
+# Install (one-time bootstrap)
+kubectl create ns argo-cd
+kubectl apply -n argo-cd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl wait --for=condition=Ready pods --all -n argo-cd
+
+# Get admin password
+kubectl -n argo-cd get secret argo-cd-initial-admin-secret \
   -o jsonpath="{.data.password}" | base64 -d
+
+# Access UI
+kubectl port-forward svc/argo-cd-argocd-server -n argo-cd 8080:443
+
+# Apply root app (self-management)
+kubectl apply -f kubernetes/argocd/bootstrap/root-app.yaml
 
 # Sync an application
 argocd app sync <app-name>
-
-# Via UI: https://argocd.yourdomain.com
 ```
 
 ## Longhorn (Once Installed)

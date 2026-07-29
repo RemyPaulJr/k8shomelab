@@ -43,10 +43,26 @@ k3s kubectl get pods -A
 Copy the kubeconfig from master:
 
 ```bash
-ssh remy@control_node "cat /etc/rancher/k3s/k3s.yaml" > ~/.kube/config
+ssh baki@control_node "cat /etc/rancher/k3s/k3s.yaml" > ~/.kube/config
 # Replace "127.0.0.1" with the master's IP
 ```
 
+## Step 6: Bootstrap ArgoCD
+
+```bash
+# Install ArgoCD from upstream manifests
+kubectl create ns argo-cd
+kubectl apply -n argo-cd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+# Wait for all pods to be ready
+kubectl wait --for=condition=Ready pods --all -n argo-cd
+
+# Apply the root Application (app-of-apps)
+kubectl apply -f kubernetes/argocd/bootstrap/root-app.yaml
+```
+
+See `docs/CLAUDE.md` for ADR 002 (reasoning behind raw manifest bootstrap).
+
 ## Next Steps
 
-Proceed to Phase 2 (GitOps + Infrastructure) once the cluster is verified.
+Proceed to the remaining Phase 2 (GitOps + Infrastructure) items: cert-manager, Cloudflare Tunnel, Longhorn, etc.
