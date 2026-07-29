@@ -4,7 +4,7 @@
 
 ```bash
 # SSH to master
-ssh remy@control_node
+ssh baki@control_node
 
 # Or use k9s from main PC (once kubeconfig is set up)
 k9s --context k3shomelab

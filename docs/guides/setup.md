@@ -3,16 +3,16 @@
 ## Prerequisites
 
 - Two Debian 13 machines with SSH access
-- User with sudo privileges (remy)
+- User with sudo privileges (baki)
 - Ansible installed on your main machine
-- Domain name registered and pointed to Cloudflare
+- Domain registered on Cloudflare (for DNS-01 TLS)
 
 ## Step 1: OS Installation
 
 Both nodes run Debian 13 (Trixie). Install with:
 - Standard system utilities
 - SSH server
-- User `remy` with sudo access
+- User `baki` with sudo access
 
 ## Step 2: Configure SSH
 
@@ -43,7 +43,7 @@ k3s kubectl get pods -A
 Copy the kubeconfig from master:
 
 ```bash
-ssh remy@control_node "cat /etc/rancher/k3s/k3s.yaml" > ~/.kube/config
+ssh baki@control_node "cat /etc/rancher/k3s/k3s.yaml" > ~/.kube/config
 # Replace "127.0.0.1" with the master's IP
 ```
 
