@@ -73,9 +73,9 @@ yourdomain.com                  k3s Cluster
 | Container Runtime  | k3s (Rancher)               | ✅ Deployed |
 | Bootstrap          | Ansible + Ansible Vault     | ✅ Done     |
 | GitOps             | ArgoCD                      | ✅ Deployed |
-| Ingress            | Traefik (k3s default)       | 🔜 Evaluate |
-| TLS                | cert-manager + Let's Encrypt | 🔜 Planned  |
-| External Access    | Cloudflare Tunnel           | 🔜 Planned  |
+| Ingress            | ingress-nginx               | ✅ Deployed |
+| TLS                | cert-manager + Let's Encrypt | ✅ Deployed |
+| External Access    | Cloudflare Tunnel           | ✅ Deployed |
 | Domain             | Cloudflare DNS              | 🔜 Planned  |
 | Storage            | Longhorn                    | 🔜 Planned  |
 | SSO/Auth           | OAuth2 Proxy / Authentik    | 🔜 Planned  |
@@ -98,9 +98,9 @@ yourdomain.com                  k3s Cluster
 ### Phase 2 — GitOps + Infrastructure Core (In Progress)
 - [x] Install ArgoCD in cluster (app-of-apps pattern)
 - [x] Define manifest directory structure (`kubernetes/`)
-- [ ] Install cert-manager + ClusterIssuer (Let's Encrypt, DNS-01 with Cloudflare)
-- [ ] Set up ingress — evaluate Traefik vs nginx-ingress
-- [ ] Deploy Cloudflare Tunnel (cloudflared as pod)
+- [x] Install cert-manager + ClusterIssuer (Let's Encrypt, DNS-01 with Cloudflare)
+- [x] Set up ingress — nginx-ingress (replaced default Traefik)
+- [x] Deploy Cloudflare Tunnel (cloudflared as pod)
 - [ ] Configure domain DNS in Cloudflare, point to tunnel
 - [ ] Deploy Longhorn for distributed block storage
 - [ ] Set up OAuth2 Proxy / Authentik for SSO on exposed apps
@@ -148,7 +148,9 @@ Each major decision gets a short record in `docs/architecture/decisions/`.
 | 003 | Cloudflare Tunnel | No open ports, free tier, handles DNS+TLS, works behind CGNAT |
 | 004 | ArgoCD over Flux | Mature, UI, sync status clarity, broader ecosystem |
 | 005 | Longhorn over Rook/Ceph | Simpler to deploy, works well on 2 nodes, UI, built-in backups |
-| —   | (Add decisions as they're made) | |
+| 006 | cert-manager | Standard for K8s TLS, DNS-01 with Cloudflare |
+| 007 | nginx-ingress | Broader ecosystem, familiar config, better cert-manager integration |
+| 008 | Cloudflare Tunnel | No open ports, works behind CGNAT, free TLS+DNS |
 
 ## Workflow
 

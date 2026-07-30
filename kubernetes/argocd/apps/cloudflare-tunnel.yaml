@@ -1,19 +1,20 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: root
+  name: cloudflare-tunnel
   namespace: argo-cd
 spec:
   project: default
   source:
     repoURL: https://github.com/RemyPaulJr/k8shomelab.git
     targetRevision: main
-    path: kubernetes/argocd/apps
-    directory:
-      recurse: true
+    path: kubernetes/infrastructure/cloudflare-tunnel
   destination:
     server: https://kubernetes.default.svc
+    namespace: cloudflare-tunnel
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
