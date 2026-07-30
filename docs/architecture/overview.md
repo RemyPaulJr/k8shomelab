@@ -7,7 +7,7 @@
 │                         Internet                                     │
 │                                                                      │
 │  ┌──────────────┐     ┌──────────────────┐     ┌─────────────────┐  │
-│  │  You (laptop) │────▶│  Cloudflare Edge │◀────│  yourdomain.com │  │
+│  │  You (laptop) │────▶│  Cloudflare Edge │◀────│  remyinthecloud.com │  │
 │  │  - k9s        │     │  - DNS           │     │  - ArgoCD UI    │  │
 │  │  - git        │     │  - TLS (cert.)   │     │  - Grafana      │  │
 │  │  - chat UI    │     │  - DDoS protect  │     │  - Apps         │  │

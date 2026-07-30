@@ -56,7 +56,7 @@ k8shomelab/
 Cloudflare ◄── Tunnel ───────────────┤
    │                                  │
    ▼                                  ▼
-yourdomain.com                  k3s Cluster
+remyinthecloud.com                  k3s Cluster
                                     │
                     ┌───────────────┴───────────────┐
                     │                               │
@@ -76,7 +76,7 @@ yourdomain.com                  k3s Cluster
 | Ingress            | ingress-nginx               | ✅ Deployed |
 | TLS                | cert-manager + Let's Encrypt | ✅ Deployed |
 | External Access    | Cloudflare Tunnel           | ✅ Deployed |
-| Domain             | Cloudflare DNS              | 🔜 Planned  |
+| Domain             | Cloudflare DNS              | ✅ Active    |
 | Storage            | Longhorn                    | 🔜 Planned  |
 | SSO/Auth           | OAuth2 Proxy / Authentik    | 🔜 Planned  |
 | Monitoring         | Prometheus + Grafana        | 🔜 Planned  |
@@ -101,7 +101,7 @@ yourdomain.com                  k3s Cluster
 - [x] Install cert-manager + ClusterIssuer (Let's Encrypt, DNS-01 with Cloudflare)
 - [x] Set up ingress — nginx-ingress (replaced default Traefik)
 - [x] Deploy Cloudflare Tunnel (cloudflared as pod)
-- [ ] Configure domain DNS in Cloudflare, point to tunnel
+- [x] Configure domain DNS in Cloudflare, point to tunnel
 - [ ] Deploy Longhorn for distributed block storage
 - [ ] Set up OAuth2 Proxy / Authentik for SSO on exposed apps
 - [ ] Set up External Secrets Operator or SOPS for GitOps-safe secrets
@@ -151,6 +151,7 @@ Each major decision gets a short record in `docs/architecture/decisions/`.
 | 006 | cert-manager | Standard for K8s TLS, DNS-01 with Cloudflare |
 | 007 | nginx-ingress | Broader ecosystem, familiar config, better cert-manager integration |
 | 008 | Cloudflare Tunnel | No open ports, works behind CGNAT, free TLS+DNS |
+| 009 | remyinthecloud.com | Single domain, wildcard DNS, per-Ingress certs via cert-manager |
 
 ## Workflow
 

@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-remyinthecloud-com
+  namespace: cert-manager
+spec:
+  secretName: wildcard-remyinthecloud-com-tls
+  commonName: "*.remyinthecloud.com"
+  dnsNames:
+    - "*.remyinthecloud.com"
+    - "remyinthecloud.com"
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
