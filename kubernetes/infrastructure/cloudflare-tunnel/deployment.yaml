@@ -13,15 +13,25 @@ spec:
       labels:
         app: cloudflared
     spec:
+      volumes:
+        - name: config
+          configMap:
+            name: cloudflared-config
+        - name: creds
+          secret:
+            secretName: cloudflare-tunnel-credentials
       containers:
-      - name: cloudflared
-        image: cloudflare/cloudflared:2024.12.2
-        args:
-        - tunnel
-        - run
-        env:
-        - name: TUNNEL_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: cloudflare-tunnel-credentials
-              key: tunnel-token
+        - name: cloudflared
+          image: cloudflare/cloudflared:2024.12.2
+          args:
+            - tunnel
+            - --config
+            - /etc/cloudflared/config.yaml
+            - run
+          volumeMounts:
+            - name: config
+              mountPath: /etc/cloudflared/config.yaml
+              subPath: config.yaml
+            - name: creds
+              mountPath: /etc/cloudflared/credentials.json
+              subPath: credentials.json
