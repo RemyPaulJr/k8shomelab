@@ -36,6 +36,42 @@ k3s kubectl describe pod -n <ns> <pod>
 - No storage class available (needs Longhorn or local-path-provisioner)
 - Wrong node selector / tolerations
 
+### ArgoCD Root App Shows "Unknown" or "ComparisonError"
+
+**Symptom:** Root Application shows `Sync Status: Unknown` or `ComparisonError` with errors like:
+```
+failed to list resources: ipaddresses.networking.k8s.io is forbidden
+failed to list resources: nodes is forbidden
+failed to list resources: challenges.acme.cert-manager.io is forbidden
+```
+
+**Cause:** The upstream ArgoCD install manifest targets the `argocd` namespace, but we deployed into `argo-cd`. The ClusterRoleBindings reference a ServiceAccount in `argocd` that doesn't exist, so the ArgoCD application controller has no RBAC permissions.
+
+**Resolution:** Recreate the ClusterRoleBindings with the correct namespace:
+```bash
+# Fix the main ClusterRoleBindings to point to argo-cd namespace
+kubectl delete clusterrolebinding argocd-application-controller
+kubectl create clusterrolebinding argocd-application-controller \
+  --clusterrole=argocd-application-controller \
+  --serviceaccount=argo-cd:argocd-application-controller
+
+kubectl delete clusterrolebinding argocd-server
+kubectl create clusterrolebinding argocd-server \
+  --clusterrole=argocd-server \
+  --serviceaccount=argo-cd:argocd-server
+
+kubectl delete clusterrolebinding argocd-applicationset-controller
+kubectl create clusterrolebinding argocd-applicationset-controller \
+  --clusterrole=argocd-applicationset-controller \
+  --serviceaccount=argo-cd:argocd-applicationset-controller
+```
+
+Then delete and recreate the root Application to clear the cache:
+```bash
+kubectl delete application root -n argo-cd
+kubectl apply -f https://raw.githubusercontent.com/RemyPaulJr/k8shomelab/main/kubernetes/argocd/bootstrap/root-app.yaml
+```
+
 ### ArgoCD Install Fails with "CRD annotation too long"
 
 **Symptom:** `kubectl apply -f install.yaml` fails with `metadata.annotations: Too long: may not be more than 262144 bytes`.
