@@ -96,3 +96,52 @@ k3s kubectl logs -n cert-manager deploy/cert-manager
 ```
 
 **Resolution:** Verify DNS records in Cloudflare and the ClusterIssuer configuration.
+
+### Cloudflare Tunnel Not Connecting
+
+**Symptom:** cloudflared pods crash-loop or show connection errors.
+
+**Check:**
+```bash
+k3s kubectl logs -n cloudflare-tunnel deploy/cloudflared
+k3s kubectl describe pod -n cloudflare-tunnel
+```
+
+**Common causes:**
+- Tunnel token secret (`cloudflare-tunnel-credentials`) not created in `cloudflare-tunnel` namespace
+- Token is expired or revoked — re-run `cloudflared tunnel token <tunnel-name>` and update the Secret
+- Network egress is blocked — verify the node can reach `api.cloudflare.com`
+- Wrong secret key name — deployment expects `tunnel-token` key in the Secret
+
+### ClusterIssuer Fails to Provision Certificate
+
+**Symptom:** Certificate remains in `pending` state, Order shows `invalid`.
+
+**Check:**
+```bash
+k3s kubectl describe certificaterequest -A
+k3s kubectl describe order -A
+k3s kubectl logs -n cert-manager deploy/cert-manager
+```
+
+**Common causes:**
+- Cloudflare API token secret (`cloudflare-api-token`) not created in `cert-manager` namespace
+- API token lacks `Zone:DNS:Edit` permission in Cloudflare
+- DNS record for the domain does not exist or is not pointed to Cloudflare
+- Let's Encrypt rate limit hit — use staging issuer for testing
+
+### ArgoCD App-of-Apps — Child App Not Created
+
+**Symptom:** After updating `root-app.yaml` to point to `kubernetes/argocd/apps/`, child Applications don't appear.
+
+**Check:**
+```bash
+k3s kubectl get application -n argo-cd
+k3s kubectl describe application root -n argo-cd
+```
+
+**Resolution:**
+- Ensure child Application manifests are valid YAML
+- Ensure the `metadata.namespace` is `argo-cd` in each child Application
+- The root Application must have `directory.recurse: true` and point to the correct path
+- Check ArgoCD logs: `k3s kubectl logs -n argo-cd deploy/argocd-application-controller`
