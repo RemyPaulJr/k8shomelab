@@ -111,7 +111,7 @@ k3s kubectl logs -n cloudflare-tunnel deploy/cloudflared
 # Check volumes
 k3s kubectl -n longhorn-system get volumes
 
-# Via UI: https://longhorn.yourdomain.com
+# Via UI: https://longhorn.remyinthecloud.com
 ```
 
 ## Backups

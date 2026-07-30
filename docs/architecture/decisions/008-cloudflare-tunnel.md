@@ -31,6 +31,6 @@ Use Cloudflare Tunnel (cloudflared) deployed as a Kubernetes Deployment to expos
 
 - A Cloudflare Tunnel token must be created via `cloudflared tunnel login` and stored as a Kubernetes Secret
 - The cloudflared Deployment runs 2 replicas for high availability
-- DNS is managed in Cloudflare — services are exposed as `*.yourdomain.com`
+- DNS is managed in Cloudflare — services are exposed as `*.remyinthecloud.com`
 - Future ingresses will have TLS managed by Cloudflare (Flexible/Full) with cert-manager for origin certificates
 - The tunnel token secret must be provisioned manually or via External Secrets Operator (planned for later)
